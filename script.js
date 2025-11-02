@@ -19,3 +19,10 @@ async function sendSearch()
 	});
 }
 
+input.addEventListener('keydown', async (event) => {
+	if (event.key === 'Enter')
+	{
+		event.preventDefault();
+		await sendSearch();
+	}
+});
