@@ -39,7 +39,7 @@ button.addEventListener('click', async () => {
 
 	try
 	{
-		const res = await fetch('https://n8n.srv1076432.hstgr.cloud/webhook/search', {
+		const res = await fetch('https://n8n.srv1076432.hstgr.cloud/webhook-test/search', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ query })
