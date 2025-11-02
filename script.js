@@ -3,6 +3,7 @@ const input = document.getElementById('search');
 
 button.addEventListener('click', () => {
 	alert('Merci. Tu as cherché : ' + input.value);
+	sendSearch();
 });
 
 async function sendSearch()
