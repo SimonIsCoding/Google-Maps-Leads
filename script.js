@@ -1,9 +1,9 @@
 const button = document.getElementById('submit');
 const input = document.getElementById('search');
 
-button.addEventListener('click', () => {
+button.addEventListener('click', async () => {
 	alert('Merci. Tu as cherché : ' + input.value);
-	sendSearch();
+	await sendSearch();
 });
 
 async function sendSearch()
