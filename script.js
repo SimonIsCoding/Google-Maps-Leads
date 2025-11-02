@@ -52,7 +52,7 @@ button.addEventListener('click', async () => {
 
 		if (data.sheet_url)
 			resultDiv.innerHTML = `
-				Résult ready!<br>
+				Result ready!<br>
 				<a href="${data.sheet_url}" target="_blank">Open Spreadsheet</a>
 			`;
 		else
