@@ -2,7 +2,6 @@ const button = document.getElementById('submit');
 const input = document.getElementById('search');
 
 button.addEventListener('click', async () => {
-	// alert('Merci. Tu as cherché : ' + input.value);
 	console.log('clic détecté');
 	await sendSearch();
 });
@@ -18,11 +17,3 @@ async function sendSearch()
 		body: JSON.stringify({ query })
 	});
 }
-
-input.addEventListener('keydown', async (event) => {
-	if (event.key === 'Enter')
-	{
-		event.preventDefault();
-		await sendSearch();
-	}
-});
