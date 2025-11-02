@@ -2,7 +2,8 @@ const button = document.getElementById('submit');
 const input = document.getElementById('search');
 
 button.addEventListener('click', async () => {
-	alert('Merci. Tu as cherché : ' + input.value);
+	// alert('Merci. Tu as cherché : ' + input.value);
+	console.log('clic détecté');
 	await sendSearch();
 });
 
