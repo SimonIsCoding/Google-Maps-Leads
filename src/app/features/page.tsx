@@ -1,4 +1,4 @@
-import { Metadata } from 'next/metadata'
+import { Metadata } from 'next'
 import Header from '@/components/Header'
 import Link from 'next/link'
 
