@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Header from '@/components/Header'
@@ -20,10 +20,40 @@ interface Search {
   completedAt: string | null
 }
 
+function NotificationHandler({ onNotification }: { onNotification: (notification: { type: 'success' | 'error', message: string } | null) => void }) {
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    // Check for notifications from URL params
+    const paymentStatus = searchParams.get('payment')
+    const searchStatus = searchParams.get('search')
+
+    if (paymentStatus === 'success') {
+      onNotification({
+        type: 'success',
+        message: 'Payment successful! Credits have been added to your account.',
+      })
+    }
+
+    if (searchStatus === 'pending') {
+      onNotification({
+        type: 'success',
+        message: 'Search submitted! You will receive an email when results are ready.',
+      })
+    }
+
+    // Auto-hide notification after 5 seconds
+    if (paymentStatus || searchStatus) {
+      setTimeout(() => onNotification(null), 5000)
+    }
+  }, [searchParams, onNotification])
+
+  return null
+}
+
 export default function Dashboard() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [searches, setSearches] = useState<Search[]>([])
   const [loading, setLoading] = useState(true)
   const [notification, setNotification] = useState<{
@@ -36,31 +66,6 @@ export default function Dashboard() {
       router.push('/auth/signin')
     }
   }, [status, router])
-
-  useEffect(() => {
-    // Check for notifications from URL params
-    const paymentStatus = searchParams.get('payment')
-    const searchStatus = searchParams.get('search')
-
-    if (paymentStatus === 'success') {
-      setNotification({
-        type: 'success',
-        message: 'Payment successful! Credits have been added to your account.',
-      })
-    }
-
-    if (searchStatus === 'pending') {
-      setNotification({
-        type: 'success',
-        message: 'Search submitted! You will receive an email when results are ready.',
-      })
-    }
-
-    // Auto-hide notification after 5 seconds
-    if (paymentStatus || searchStatus) {
-      setTimeout(() => setNotification(null), 5000)
-    }
-  }, [searchParams])
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -120,6 +125,10 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
+
+      <Suspense fallback={null}>
+        <NotificationHandler onNotification={setNotification} />
+      </Suspense>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Notification */}

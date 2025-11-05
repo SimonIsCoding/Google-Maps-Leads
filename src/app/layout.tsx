@@ -6,6 +6,7 @@ import { Providers } from '@/components/Providers'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.APP_BASE_URL || 'https://mapscraperhub.com'),
   title: 'MapScraperHub - Transform Google Maps Searches into Google Sheets',
   description: 'Turn Google Maps searches into organized Google Sheets data. Simple, fast, and affordable.',
   keywords: 'Google Maps, data extraction, lead generation, business intelligence, scraping',

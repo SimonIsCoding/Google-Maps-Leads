@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Header from '@/components/Header'
@@ -32,14 +32,29 @@ const CREDIT_PACKAGES = [
   },
 ]
 
+function InsufficientCreditsAlert() {
+  const searchParams = useSearchParams()
+  const creditsNeeded = searchParams.get('needed')
+  const creditsAvailable = searchParams.get('available')
+
+  if (!creditsNeeded || !creditsAvailable) {
+    return null
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto mb-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+      <p className="text-yellow-800">
+        ⚠️ You need <strong>{creditsNeeded}</strong> credits for your search, but you only have{' '}
+        <strong>{creditsAvailable}</strong> credits. Please purchase more credits below.
+      </p>
+    </div>
+  )
+}
+
 export default function Pricing() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [loading, setLoading] = useState<string | null>(null)
-
-  const creditsNeeded = searchParams.get('needed')
-  const creditsAvailable = searchParams.get('available')
 
   const handlePurchase = async (packageId: string) => {
     if (status === 'unauthenticated') {
@@ -88,14 +103,9 @@ export default function Pricing() {
         </div>
 
         {/* Insufficient Credits Alert */}
-        {creditsNeeded && creditsAvailable && (
-          <div className="max-w-2xl mx-auto mb-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-yellow-800">
-              ⚠️ You need <strong>{creditsNeeded}</strong> credits for your search, but you only have{' '}
-              <strong>{creditsAvailable}</strong> credits. Please purchase more credits below.
-            </p>
-          </div>
-        )}
+        <Suspense fallback={null}>
+          <InsufficientCreditsAlert />
+        </Suspense>
 
         {/* Pricing Cards */}
         <div className="grid md:grid-cols-3 gap-8 mb-12">
