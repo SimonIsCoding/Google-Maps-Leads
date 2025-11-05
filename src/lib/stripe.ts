@@ -4,7 +4,7 @@ import logger from './logger'
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || ''
 
 export const stripe = new Stripe(STRIPE_SECRET_KEY, {
-  apiVersion: '2024-12-18.acacia',
+  apiVersion: '2023-10-16',
   typescript: true,
 })
 
@@ -21,7 +21,7 @@ export const CREDIT_PACKAGES: CreditPackage[] = [
     id: 'pack-100',
     name: '100 Credits',
     credits: 100,
-    price: 1000, // €10.00
+    price: 1000, // $10.00
     priceId: process.env.STRIPE_PRICE_ID_100_CREDITS || 'price_100',
   },
   {
