@@ -47,6 +47,7 @@ When a user creates a search, MapScraperHub sends this to your n8n webhook:
 }
 ```
 
+
 ---
 
 ## Step 2: Process the Scraping
