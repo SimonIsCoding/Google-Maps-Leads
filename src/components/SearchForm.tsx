@@ -10,7 +10,7 @@ export default function SearchForm() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [query, setQuery] = useState('')
-  const [maxRows, setMaxRows] = useState(10)
+  const [maxRows, setMaxRows] = useState(5)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
