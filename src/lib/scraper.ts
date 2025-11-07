@@ -14,7 +14,8 @@ export interface ScraperRequest
   callbackUrl: string
 }
 
-export interface ScraperResponse {
+export interface ScraperResponse
+{
   success: boolean
   requestId: string
   error?: string
