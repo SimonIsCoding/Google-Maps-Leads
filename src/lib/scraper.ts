@@ -6,7 +6,8 @@ const APP_BASE_URL = process.env.APP_BASE_URL || 'http://localhost:3000'
 const MAX_RETRIES = 3
 const RETRY_DELAY_MS = 2000
 
-export interface ScraperRequest {
+export interface ScraperRequest
+{
   requestId: string
   query: string
   maxRows: number
