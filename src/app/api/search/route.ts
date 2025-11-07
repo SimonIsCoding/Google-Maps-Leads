@@ -7,6 +7,7 @@ import { searchSchema } from '@/lib/validators'
 import { calculateCreditsNeeded, hasEnoughCredits } from '@/lib/credits'
 import { triggerScraper } from '@/lib/scraper'
 import { rateLimit, getRateLimitIdentifier } from '@/lib/rate-limit'
+import { v4 as uuidv4 } from 'uuid'
 
 /**
  * POST /api/search
@@ -70,10 +71,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Trigger external scraper
-    const { requestId } = await triggerScraper(query, maxRows)
+    // Generate requestId first
+    const requestId = uuidv4()
 
-    // Create search record with PENDING status
+    // Create search record with PENDING status BEFORE triggering scraper
+    // This ensures the record exists when the callback arrives
     const search = await prisma.search.create({
       data: {
         userId,
@@ -83,6 +85,16 @@ export async function POST(req: NextRequest) {
         status: 'PENDING',
         creditsUsed: creditsNeeded, // Store expected credits (will be deducted on success)
       },
+    })
+
+    // Now trigger external scraper (async, but record is already in DB)
+    triggerScraper(query, maxRows, requestId).catch((error) => {
+      logger.error({ error, requestId, searchId: search.id }, 'Failed to trigger scraper')
+      // Update search status to FAILED if webhook fails
+      prisma.search.update({
+        where: { id: search.id },
+        data: { status: 'FAILED', errorMessage: 'Failed to trigger scraper' },
+      }).catch((err) => logger.error({ err }, 'Failed to update search status'))
     })
 
     logger.info(
