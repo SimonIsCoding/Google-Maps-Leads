@@ -10,7 +10,7 @@ if [ -z "$1" ]; then
 fi
 
 VERCEL_URL=$1
-ENDPOINT="${VERCEL_URL}api/webhook-return"
+ENDPOINT="${VERCEL_URL}/api/webhook-return"
 
 echo "🧪 Test de l'endpoint: $ENDPOINT"
 echo ""

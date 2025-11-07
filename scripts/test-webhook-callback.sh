@@ -29,7 +29,7 @@ REQUEST_ID=$2
 # Remove trailing slash from APP_URL
 APP_URL=${APP_URL%/}
 
-CALLBACK_URL="${APP_URL}api/webhook-return"
+CALLBACK_URL="${APP_URL}/api/webhook-return"
 
 echo "App URL: $APP_URL"
 echo "Callback URL: $CALLBACK_URL"
