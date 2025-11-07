@@ -44,8 +44,7 @@ export async function triggerScraper(
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      const response = await fetch(SCRAPER_WEBHOOK_URL,
-	  {
+      const response = await fetch(SCRAPER_WEBHOOK_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
