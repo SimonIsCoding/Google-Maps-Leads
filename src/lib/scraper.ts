@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from 'uuid'
 import logger from './logger'
 
 const SCRAPER_WEBHOOK_URL = process.env.SCRAPER_WEBHOOK_URL!
@@ -26,9 +25,9 @@ export interface ScraperResponse {
  */
 export async function triggerScraper(
   query: string,
-  maxRows: number
+  maxRows: number,
+  requestId: string
 ): Promise<{ requestId: string }> {
-  const requestId = uuidv4()
   const callbackUrl = `${APP_BASE_URL}/api/webhook-return`
 
   const payload: ScraperRequest = {
