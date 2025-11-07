@@ -9,23 +9,55 @@ import { triggerScraper } from '@/lib/scraper'
 import { rateLimit, getRateLimitIdentifier } from '@/lib/rate-limit'
 import { v4 as uuidv4 } from 'uuid'
 
+const GUEST_USER_EMAIL = 'guest@mapscraperhub.system'
+const GUEST_MAX_ROWS = 10
+
+/**
+ * Get or create the guest user for unauthenticated searches
+ */
+async function getGuestUser() {
+  let guestUser = await prisma.user.findUnique({
+    where: { email: GUEST_USER_EMAIL },
+  })
+
+  if (!guestUser) {
+    // Create guest user if doesn't exist
+    guestUser = await prisma.user.create({
+      data: {
+        email: GUEST_USER_EMAIL,
+        name: 'Guest User',
+        credits: 999999, // Unlimited credits for guest (they're limited by rows anyway)
+        role: 'USER',
+      },
+    })
+    logger.info({ guestUserId: guestUser.id }, 'Guest user created')
+  }
+
+  return guestUser
+}
+
 /**
  * POST /api/search
  * Create a new search request
+ * Supports both authenticated and guest (unauthenticated) searches
  */
 export async function POST(req: NextRequest) {
   try {
     // Check authentication
     const session = await getServerSession(authOptions)
 
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
+    // Determine if this is a guest or authenticated user
+    const isGuest = !session || !session.user
+    let userId: string
 
-    const userId = session.user.id
+    if (isGuest) {
+      // Get or create guest user
+      const guestUser = await getGuestUser()
+      userId = guestUser.id
+      logger.info({ userId }, 'Guest search request')
+    } else {
+      userId = session.user.id
+    }
 
     // Rate limiting
     const rateLimitResult = rateLimit(getRateLimitIdentifier(req, userId))
@@ -42,15 +74,27 @@ export async function POST(req: NextRequest) {
 
     // Parse and validate request body
     const body = await req.json()
-    const { query, maxRows } = searchSchema.parse(body)
+    let { query, maxRows } = searchSchema.parse(body)
 
-    logger.info({ userId, query, maxRows }, 'Search request received')
+    // For guest users, limit to GUEST_MAX_ROWS
+    if (isGuest && maxRows > GUEST_MAX_ROWS) {
+      return NextResponse.json(
+        {
+          error: `Guest searches are limited to ${GUEST_MAX_ROWS} rows. Please sign up for unlimited searches.`,
+          maxRowsAllowed: GUEST_MAX_ROWS,
+          redirectTo: '/auth/register',
+        },
+        { status: 403 } // Forbidden
+      )
+    }
 
-    // Calculate credits needed
-    const creditsNeeded = calculateCreditsNeeded(maxRows)
+    logger.info({ userId, query, maxRows, isGuest }, 'Search request received')
 
-    // Check if user has enough credits
-    if (creditsNeeded > 0) {
+    // Calculate credits needed (guests don't pay credits, but we track it)
+    const creditsNeeded = isGuest ? 0 : calculateCreditsNeeded(maxRows)
+
+    // Check if authenticated user has enough credits
+    if (!isGuest && creditsNeeded > 0) {
       const hasSufficientCredits = await hasEnoughCredits(userId, creditsNeeded)
 
       if (!hasSufficientCredits) {
@@ -108,7 +152,10 @@ export async function POST(req: NextRequest) {
         requestId: search.requestId,
         status: search.status,
         creditsNeeded,
-        message: 'Search request submitted successfully',
+        isGuest,
+        message: isGuest
+          ? 'Free trial search submitted! Sign up to access more features.'
+          : 'Search request submitted successfully',
       },
       { status: 201 }
     )

@@ -2,7 +2,7 @@ import logger from './logger'
 
 const SCRAPER_WEBHOOK_URL = process.env.SCRAPER_WEBHOOK_URL!
 const APP_BASE_URL = process.env.APP_BASE_URL || 'http://localhost:3000'
-const MAX_RETRIES = 3
+const MAX_RETRIES = 1 // Only try once, no retries
 const RETRY_DELAY_MS = 2000
 
 export interface ScraperRequest
@@ -22,7 +22,7 @@ export interface ScraperResponse
 
 /**
  * Trigger external scraper service via webhook
- * Retries up to MAX_RETRIES times on failure
+ * Makes a single attempt - no retries on failure
  */
 export async function triggerScraper(
   query: string,
@@ -60,16 +60,16 @@ export async function triggerScraper(
       const data = await response.json()
 
       logger.info(
-        { requestId, attempt, response: data },
+        { requestId, response: data },
         'Scraper webhook triggered successfully'
       )
 
       return { requestId }
     } catch (error) {
       lastError = error as Error
-      logger.warn(
-        { requestId, attempt, error: lastError.message },
-        `Scraper webhook attempt ${attempt} failed`
+      logger.error(
+        { requestId, error: lastError.message },
+        'Scraper webhook failed'
       )
 
       if (attempt < MAX_RETRIES) {
@@ -79,13 +79,13 @@ export async function triggerScraper(
     }
   }
 
-  // All retries failed
+  // Webhook failed
   logger.error(
     { requestId, error: lastError?.message },
-    'All scraper webhook attempts failed'
+    'Scraper webhook attempt failed'
   )
 
-  throw new Error(`Failed to trigger scraper after ${MAX_RETRIES} attempts: ${lastError?.message}`)
+  throw new Error(`Failed to trigger scraper: ${lastError?.message}`)
 }
 
 /**
