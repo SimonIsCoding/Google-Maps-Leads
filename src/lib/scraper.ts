@@ -29,7 +29,7 @@ export async function triggerScraper(
   maxRows: number
 ): Promise<{ requestId: string }> {
   const requestId = uuidv4()
-  const callbackUrl = `${APP_BASE_URL}/api/webhook-return`
+  const callbackUrl = `${APP_BASE_URL}api/webhook-return`
 
   const payload: ScraperRequest = {
     requestId,
