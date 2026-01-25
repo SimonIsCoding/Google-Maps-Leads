@@ -3,54 +3,558 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Maps Data Extractor</title>
-    <link rel="stylesheet" href="style.css">
+    <title>YouTube to Newsletter | SimonAutomatise</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #fafafa;
+            --card-bg: #ffffff;
+            --text: #1f2937;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .brand {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary);
+            letter-spacing: -0.025em;
+            margin-bottom: 0.5rem;
+        }
+
+        .title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.025em;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        /* Card */
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+            border: 1px solid var(--border);
+        }
+
+        /* Input Group */
+        .input-group {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .input-url {
+            flex: 1;
+            padding: 0.875rem 1rem;
+            font-size: 1rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .input-url:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .input-url::placeholder {
+            color: var(--text-muted);
+        }
+
+        .btn-generate {
+            padding: 0.875rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: white;
+            background: var(--primary);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            white-space: nowrap;
+        }
+
+        .btn-generate:hover:not(:disabled) {
+            background: var(--primary-hover);
+        }
+
+        .btn-generate:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        .btn-generate:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Progress */
+        .progress-container {
+            margin-top: 1.5rem;
+            display: none;
+        }
+
+        .progress-container.active {
+            display: block;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), #3b82f6);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s ease-out;
+        }
+
+        /* Error */
+        .error-message {
+            margin-top: 1rem;
+            padding: 0.875rem 1rem;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            color: var(--error);
+            font-size: 0.875rem;
+            display: none;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        /* Result */
+        .result-container {
+            margin-top: 2rem;
+            display: none;
+        }
+
+        .result-container.active {
+            display: block;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .result-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .btn-copy {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text);
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-copy:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-copy.copied {
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .btn-copy svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .result-content {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            overflow-x: auto;
+        }
+
+        /* Newsletter content styling */
+        .result-content h1, .result-content h2, .result-content h3 {
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: var(--text);
+        }
+
+        .result-content h1:first-child, .result-content h2:first-child, .result-content h3:first-child {
+            margin-top: 0;
+        }
+
+        .result-content p {
+            margin-bottom: 1rem;
+        }
+
+        .result-content ul, .result-content ol {
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+        }
+
+        .result-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .result-content a {
+            color: var(--primary);
+        }
+
+        .result-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .container {
+                padding: 1.5rem 1rem;
+            }
+
+            .title {
+                font-size: 1.5rem;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            .btn-generate {
+                width: 100%;
+            }
+
+            .result-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+
+            .btn-copy {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h1>Google Maps Data Extractor</h1>
-        <p class="subtitle">Extraire des données de Google Maps en quelques secondes</p>
+        <header class="header">
+            <div class="brand">SimonAutomatise</div>
+            <h1 class="title">YouTube to Newsletter</h1>
+            <p class="subtitle">Transformez n'importe quelle vidéo YouTube en newsletter professionnelle</p>
+        </header>
 
-        <div class="input-group">
-            <label for="search">Recherche Google Maps</label>
-            <input
-                type="text"
-                id="search"
-                placeholder="Ex: Restaurant à Paris"
-                required
-            >
-        </div>
-
-        <div class="input-group">
-            <label for="rows">Nombre de résultats (max 100)</label>
-            <input
-                type="number"
-                id="rows"
-                placeholder="Ex: 20"
-                min="1"
-                max="100"
-                value="10"
-                required
-            >
-        </div>
-
-        <button id="submit" class="btn-search">Rechercher</button>
-
-        <div id="progress-container" class="hidden">
-            <div class="progress-bar">
-                <div id="progress-fill" class="progress-fill"></div>
+        <div class="card">
+            <div class="input-group">
+                <input
+                    type="url"
+                    id="youtube-url"
+                    class="input-url"
+                    placeholder="Collez votre URL YouTube ici..."
+                    autocomplete="off"
+                >
+                <button id="btn-generate" class="btn-generate">
+                    Générer la newsletter
+                </button>
             </div>
-            <p id="progress-text" class="progress-text">0%</p>
+
+            <div id="progress-container" class="progress-container">
+                <div class="progress-label">
+                    <span>Génération en cours...</span>
+                    <span id="progress-percent">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill"></div>
+                </div>
+            </div>
+
+            <div id="error-message" class="error-message"></div>
         </div>
 
-        <div id="logs" class="logs hidden">
-            <h3>Logs</h3>
-            <div id="logs-content"></div>
+        <div id="result-container" class="result-container">
+            <div class="result-header">
+                <h2 class="result-title">Votre newsletter</h2>
+                <button id="btn-copy" class="btn-copy">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    <span id="copy-text">Copier la newsletter</span>
+                </button>
+            </div>
+            <div id="result-content" class="result-content"></div>
         </div>
-
-        <div id="result" class="result hidden"></div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        (function() {
+            // Elements
+            const urlInput = document.getElementById('youtube-url');
+            const btnGenerate = document.getElementById('btn-generate');
+            const progressContainer = document.getElementById('progress-container');
+            const progressFill = document.getElementById('progress-fill');
+            const progressPercent = document.getElementById('progress-percent');
+            const errorMessage = document.getElementById('error-message');
+            const resultContainer = document.getElementById('result-container');
+            const resultContent = document.getElementById('result-content');
+            const btnCopy = document.getElementById('btn-copy');
+            const copyText = document.getElementById('copy-text');
+
+            // State
+            let rawHtml = '';
+            let progressInterval = null;
+            let currentProgress = 0;
+
+            // Webhook URL
+            const WEBHOOK_URL = 'https://n8n.srv1076432.hstgr.cloud/webhook-test/youtube-to-newsletter';
+
+            // Validate YouTube URL
+            function isValidYoutubeUrl(url) {
+                const patterns = [
+                    /^(https?:\/\/)?(www\.)?youtube\.com\/watch\?v=[\w-]+/,
+                    /^(https?:\/\/)?(www\.)?youtu\.be\/[\w-]+/,
+                    /^(https?:\/\/)?(www\.)?youtube\.com\/embed\/[\w-]+/,
+                    /^(https?:\/\/)?(www\.)?youtube\.com\/v\/[\w-]+/,
+                    /^(https?:\/\/)?(www\.)?youtube\.com\/shorts\/[\w-]+/
+                ];
+                return patterns.some(pattern => pattern.test(url.trim()));
+            }
+
+            // Show error
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.classList.add('active');
+            }
+
+            // Hide error
+            function hideError() {
+                errorMessage.classList.remove('active');
+            }
+
+            // Start progress animation
+            function startProgress() {
+                currentProgress = 0;
+                progressFill.style.width = '0%';
+                progressPercent.textContent = '0%';
+                progressContainer.classList.add('active');
+
+                // Progress over ~60 seconds (60000ms)
+                // We'll increment smoothly with easing to feel natural
+                const totalDuration = 60000;
+                const intervalMs = 100;
+                const totalSteps = totalDuration / intervalMs;
+                let step = 0;
+
+                progressInterval = setInterval(() => {
+                    step++;
+                    // Ease-out curve: fast at start, slows down approaching 95%
+                    const t = step / totalSteps;
+                    currentProgress = Math.min(95, 95 * (1 - Math.pow(1 - t, 3)));
+
+                    progressFill.style.width = currentProgress + '%';
+                    progressPercent.textContent = Math.round(currentProgress) + '%';
+
+                    if (step >= totalSteps) {
+                        clearInterval(progressInterval);
+                    }
+                }, intervalMs);
+            }
+
+            // Stop progress animation
+            function stopProgress(success = true) {
+                if (progressInterval) {
+                    clearInterval(progressInterval);
+                    progressInterval = null;
+                }
+
+                if (success) {
+                    // Complete the progress bar
+                    progressFill.style.width = '100%';
+                    progressPercent.textContent = '100%';
+
+                    // Hide after a brief moment
+                    setTimeout(() => {
+                        progressContainer.classList.remove('active');
+                        progressFill.style.width = '0%';
+                    }, 300);
+                } else {
+                    progressContainer.classList.remove('active');
+                    progressFill.style.width = '0%';
+                }
+            }
+
+            // Generate newsletter
+            async function generateNewsletter() {
+                const url = urlInput.value.trim();
+
+                // Validate
+                hideError();
+                if (!url) {
+                    showError('Veuillez entrer une URL YouTube.');
+                    return;
+                }
+
+                if (!isValidYoutubeUrl(url)) {
+                    showError('Veuillez entrer une URL YouTube valide.');
+                    return;
+                }
+
+                // Disable button and start progress
+                btnGenerate.disabled = true;
+                btnGenerate.textContent = 'Génération...';
+                resultContainer.classList.remove('active');
+                startProgress();
+
+                try {
+                    const response = await fetch(WEBHOOK_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ youtube_url: url })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Erreur serveur: ${response.status}`);
+                    }
+
+                    rawHtml = await response.text();
+
+                    // Stop progress and show result
+                    stopProgress(true);
+                    resultContent.innerHTML = rawHtml;
+                    resultContainer.classList.add('active');
+
+                    // Scroll to result
+                    setTimeout(() => {
+                        resultContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 100);
+
+                } catch (error) {
+                    stopProgress(false);
+                    showError(`Erreur lors de la génération: ${error.message}`);
+                    console.error('Error:', error);
+                } finally {
+                    btnGenerate.disabled = false;
+                    btnGenerate.textContent = 'Générer la newsletter';
+                }
+            }
+
+            // Copy to clipboard
+            async function copyNewsletter() {
+                if (!rawHtml) return;
+
+                try {
+                    await navigator.clipboard.writeText(rawHtml);
+
+                    // Show success state
+                    btnCopy.classList.add('copied');
+                    copyText.textContent = 'Copié !';
+
+                    setTimeout(() => {
+                        btnCopy.classList.remove('copied');
+                        copyText.textContent = 'Copier la newsletter';
+                    }, 2000);
+                } catch (error) {
+                    // Fallback for older browsers
+                    const textarea = document.createElement('textarea');
+                    textarea.value = rawHtml;
+                    textarea.style.position = 'fixed';
+                    textarea.style.opacity = '0';
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+
+                    btnCopy.classList.add('copied');
+                    copyText.textContent = 'Copié !';
+
+                    setTimeout(() => {
+                        btnCopy.classList.remove('copied');
+                        copyText.textContent = 'Copier la newsletter';
+                    }, 2000);
+                }
+            }
+
+            // Event listeners
+            btnGenerate.addEventListener('click', generateNewsletter);
+            btnCopy.addEventListener('click', copyNewsletter);
+
+            // Allow Enter key to submit
+            urlInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    generateNewsletter();
+                }
+            });
+        })();
+    </script>
 </body>
 </html>
