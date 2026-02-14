@@ -1,56 +1,20 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Maps Data Extractor</title>
-    <link rel="stylesheet" href="style.css">
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Search</title>
+	<link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Google Maps Data Extractor</h1>
-        <p class="subtitle">Extraire des données de Google Maps en quelques secondes</p>
+	<div class="container">
+		<h1>Google Maps Search</h1>
+		<input type="text" id="search" placeholder="Ex: Restaurant in Chicago">
+		<button id="submit">Enter</button>
 
-        <div class="input-group">
-            <label for="search">Recherche Google Maps</label>
-            <input
-                type="text"
-                id="search"
-                placeholder="Ex: Restaurant à Paris"
-                required
-            >
-        </div>
+		<div id="result" style="margin-top: 20px;"></div>
+	</div>
 
-        <div class="input-group">
-            <label for="rows">Nombre de résultats (max 100)</label>
-            <input
-                type="number"
-                id="rows"
-                placeholder="Ex: 20"
-                min="1"
-                max="100"
-                value="10"
-                required
-            >
-        </div>
-
-        <button id="submit" class="btn-search">Rechercher</button>
-
-        <div id="progress-container" class="hidden">
-            <div class="progress-bar">
-                <div id="progress-fill" class="progress-fill"></div>
-            </div>
-            <p id="progress-text" class="progress-text">0%</p>
-        </div>
-
-        <div id="logs" class="logs hidden">
-            <h3>Logs</h3>
-            <div id="logs-content"></div>
-        </div>
-
-        <div id="result" class="result hidden"></div>
-    </div>
-
-    <script src="script.js"></script>
+	<script src="script.js"></script>
 </body>
 </html>
