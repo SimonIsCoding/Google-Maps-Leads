@@ -4,26 +4,34 @@
 
 const WEBHOOK_URL = "VOTRE_WEBHOOK_N8N_ICI";
 
+// Dur\u00e9e de la barre de progression (en secondes)
+const PROGRESS_DURATION = 60;
+
 // ═══════════════════════════════════════════════════════════════
 
 
 // ─────────────────────────────────────────────────────────────
 // DOM References
 // ─────────────────────────────────────────────────────────────
-const form            = document.getElementById('scraper-form');
-const searchInput     = document.getElementById('search-input');
-const btnSubmit       = document.getElementById('btn-submit');
-const btnText         = btnSubmit.querySelector('.btn-text');
-const feedbackSuccess = document.getElementById('feedback-success');
-const feedbackError   = document.getElementById('feedback-error');
-const errorMessage    = document.getElementById('error-message');
-const retryBtn        = document.getElementById('retry-btn');
-const segmentBtns     = document.querySelectorAll('.segment-btn');
+const form             = document.getElementById('scraper-form');
+const searchInput      = document.getElementById('search-input');
+const btnSubmit        = document.getElementById('btn-submit');
+const btnText          = btnSubmit.querySelector('.btn-text');
+const feedbackSuccess  = document.getElementById('feedback-success');
+const feedbackError    = document.getElementById('feedback-error');
+const errorMessage     = document.getElementById('error-message');
+const retryBtn         = document.getElementById('retry-btn');
+const segmentBtns      = document.querySelectorAll('.segment-btn');
 const segmentHighlight = document.getElementById('segment-highlight');
-const header          = document.getElementById('header');
+const header           = document.getElementById('header');
+const progressSection  = document.getElementById('progress-section');
+const progressBar      = document.getElementById('progress-bar');
+const progressPercent  = document.getElementById('progress-percent');
+const progressLabel    = document.getElementById('progress-label');
+const resultLink       = document.getElementById('result-link');
 
-let selectedLimit = 25;
-let resetTimeout  = null;
+let selectedLimit   = 25;
+let progressTimer   = null;
 
 
 // ─────────────────────────────────────────────────────────────
@@ -68,9 +76,11 @@ window.addEventListener('resize', () => {
 // ─────────────────────────────────────────────────────────────
 // UI State Helpers
 // ─────────────────────────────────────────────────────────────
-function hideFeedback() {
+function hideAll() {
   feedbackSuccess.classList.remove('visible');
   feedbackError.classList.remove('visible');
+  progressSection.classList.remove('visible');
+  resultLink.classList.remove('visible');
 }
 
 function setLoadingState(loading) {
@@ -79,23 +89,81 @@ function setLoadingState(loading) {
   btnText.textContent = loading ? 'Extraction en cours...' : "Lancer l'extraction";
 }
 
-function showSuccess() {
-  hideFeedback();
-  // Re-trigger SVG draw animations by cloning the node
-  const svg    = feedbackSuccess.querySelector('svg');
-  const newSvg = svg.cloneNode(true);
-  svg.parentNode.replaceChild(newSvg, svg);
-  feedbackSuccess.classList.add('visible');
-  searchInput.value = '';
 
-  if (resetTimeout) clearTimeout(resetTimeout);
-  resetTimeout = setTimeout(() => {
-    feedbackSuccess.classList.remove('visible');
-  }, 5000);
+// ─────────────────────────────────────────────────────────────
+// Progress Bar — Animated over PROGRESS_DURATION seconds
+// ─────────────────────────────────────────────────────────────
+function startProgress() {
+  progressSection.classList.add('visible');
+  progressLabel.textContent = 'Extraction en cours...';
+  progressBar.style.width = '0%';
+  progressPercent.textContent = '0%';
+
+  const startTime = Date.now();
+  const duration  = PROGRESS_DURATION * 1000;
+
+  // Clear any previous timer
+  if (progressTimer) cancelAnimationFrame(progressTimer);
+
+  function tick() {
+    const elapsed = Date.now() - startTime;
+    // Cap at 95% — the last 5% will jump to 100% when the webhook responds
+    const pct = Math.min(95, (elapsed / duration) * 100);
+
+    progressBar.style.width    = pct + '%';
+    progressPercent.textContent = Math.round(pct) + '%';
+
+    if (pct < 95) {
+      progressTimer = requestAnimationFrame(tick);
+    }
+  }
+
+  progressTimer = requestAnimationFrame(tick);
+}
+
+function completeProgress() {
+  if (progressTimer) cancelAnimationFrame(progressTimer);
+  progressBar.style.width     = '100%';
+  progressPercent.textContent  = '100%';
+  progressLabel.textContent    = 'Extraction termin\u00e9e !';
+}
+
+function stopProgress() {
+  if (progressTimer) cancelAnimationFrame(progressTimer);
+}
+
+
+// ─────────────────────────────────────────────────────────────
+// Success — Show checkmark + Google Sheet link
+// ─────────────────────────────────────────────────────────────
+function showSuccess(sheetUrl) {
+  completeProgress();
+
+  // Small delay so the user sees 100% before the result appears
+  setTimeout(() => {
+    progressSection.classList.remove('visible');
+
+    // Re-trigger SVG draw animations by cloning the node
+    const svg    = feedbackSuccess.querySelector('svg');
+    const newSvg = svg.cloneNode(true);
+    svg.parentNode.replaceChild(newSvg, svg);
+    feedbackSuccess.classList.add('visible');
+
+    // Show Google Sheet link
+    if (sheetUrl) {
+      resultLink.href = sheetUrl;
+      resultLink.classList.add('visible');
+    }
+
+    searchInput.value = '';
+  }, 600);
 }
 
 function showError(message) {
-  hideFeedback();
+  stopProgress();
+  progressSection.classList.remove('visible');
+  feedbackSuccess.classList.remove('visible');
+  resultLink.classList.remove('visible');
   errorMessage.textContent = message || "Une erreur est survenue. Veuillez r\u00e9essayer.";
   feedbackError.classList.add('visible');
 }
@@ -106,7 +174,7 @@ function showError(message) {
 // ─────────────────────────────────────────────────────────────
 async function submitForm(e) {
   e.preventDefault();
-  hideFeedback();
+  hideAll();
 
   const query = searchInput.value.trim();
   if (!query) {
@@ -116,6 +184,7 @@ async function submitForm(e) {
   }
 
   setLoadingState(true);
+  startProgress();
 
   try {
     const response = await fetch(WEBHOOK_URL, {
@@ -129,7 +198,16 @@ async function submitForm(e) {
     });
 
     if (!response.ok) throw new Error('Erreur r\u00e9seau');
-    showSuccess();
+
+    // ───────────────────────────────────────────────────────
+    // EXPECTED WEBHOOK RESPONSE FORMAT:
+    //   { "sheetUrl": "https://docs.google.com/spreadsheets/d/..." }
+    // Adapt the key name below if your n8n webhook uses a different key.
+    // ───────────────────────────────────────────────────────
+    const data     = await response.json();
+    const sheetUrl = data.sheetUrl || data.sheet_url || data.url || null;
+
+    showSuccess(sheetUrl);
   } catch (error) {
     showError("Une erreur est survenue. Veuillez r\u00e9essayer.");
   } finally {
@@ -140,6 +218,6 @@ async function submitForm(e) {
 form.addEventListener('submit', submitForm);
 
 retryBtn.addEventListener('click', () => {
-  hideFeedback();
+  hideAll();
   searchInput.focus();
 });
