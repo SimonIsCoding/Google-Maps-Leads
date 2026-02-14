@@ -2,7 +2,7 @@
 // CONFIGURATION - COLLEZ VOTRE WEBHOOK N8N CI-DESSOUS
 // ═══════════════════════════════════════════════════════════════
 
-const WEBHOOK_URL = "VOTRE_WEBHOOK_N8N_ICI";
+const WEBHOOK_URL = "https://n8n.srv1076432.hstgr.cloud/webhook/search";
 
 // ═══════════════════════════════════════════════════════════════
 
