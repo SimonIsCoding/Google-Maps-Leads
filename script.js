@@ -5,7 +5,7 @@
 const WEBHOOK_URL = "https://n8n.srv1076432.hstgr.cloud/webhook/search";
 
 // URL de callback envoy\u00e9e au workflow n8n (utilis\u00e9e par le noeud HTTP Request)
-const CALLBACK_URL = "VOTRE_CALLBACK_URL_ICI";
+const CALLBACK_URL = "https://n8n.srv1076432.hstgr.cloud/webhook/search"
 
 // Dur\u00e9e de la barre de progression (en secondes)
 const PROGRESS_DURATION = 60;
