@@ -357,48 +357,15 @@ body {
   color: var(--accent-start);
 }
 
-/* --- Segment control --- */
-.segment-control {
-  display: flex;
-  background: var(--bg-primary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 4px;
-  position: relative;
+/* --- Number input: hide native spinners --- */
+.search-input[type="number"]::-webkit-outer-spin-button,
+.search-input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
-.segment-highlight {
-  position: absolute;
-  top: 4px;
-  height: calc(100% - 8px);
-  background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
-  border-radius: var(--radius-sm);
-  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 1;
-}
-
-.segment-btn {
-  flex: 1;
-  position: relative;
-  z-index: 2;
-  height: 40px;
-  background: none;
-  border: none;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-muted);
-  cursor: pointer;
-  border-radius: var(--radius-sm);
-  transition: color 0.2s ease;
-}
-
-.segment-btn:hover {
-  color: var(--text-secondary);
-}
-
-.segment-btn.active {
-  color: white;
+.search-input[type="number"] {
+  -moz-appearance: textfield;
 }
 
 /* --- Submit button --- */
@@ -553,6 +520,139 @@ body {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   PROGRESS BAR
+   ═══════════════════════════════════════════════════════════════ */
+.progress-section {
+  display: none;
+  margin-top: 24px;
+  animation: fadeUp 0.3s ease;
+}
+
+.progress-section.visible {
+  display: block;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.progress-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.progress-percent {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-start);
+  font-variant-numeric: tabular-nums;
+}
+
+.progress-track {
+  width: 100%;
+  height: 6px;
+  background: var(--bg-primary);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+  border-radius: 999px;
+  transition: width 0.4s ease;
+  position: relative;
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  animation: progress-shimmer 1.5s ease infinite;
+}
+
+@keyframes progress-shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.progress-hint {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESULT LINK — Google Sheet
+   ═══════════════════════════════════════════════════════════════ */
+.result-link {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 16px 24px;
+  background: rgba(34, 197, 94, 0.08);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  border-radius: var(--radius-md);
+  color: var(--success);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  animation: fadeUp 0.4s ease;
+}
+
+.result-link.visible {
+  display: flex;
+}
+
+.result-link:hover {
+  background: rgba(34, 197, 94, 0.14);
+  transform: scale(1.02);
+  box-shadow: 0 0 24px rgba(34, 197, 94, 0.12);
+}
+
+.result-link:active {
+  transform: scale(0.98);
+}
+
+.result-link-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.result-link-arrow {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.result-link:hover .result-link-arrow {
+  transform: translate(2px, -2px);
+}
+
+/* ═══════════════════════════════════════════════════════════════
    TRUST BADGES
    ═══════════════════════════════════════════════════════════════ */
 .trust-section {
@@ -655,21 +755,6 @@ body {
 
   .hero-subtitle {
     font-size: 15px;
-  }
-
-  .segment-control {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4px;
-  }
-
-  .segment-highlight {
-    display: none;
-  }
-
-  .segment-btn.active {
-    background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
-    border-radius: var(--radius-sm);
   }
 
   .trust-section {
