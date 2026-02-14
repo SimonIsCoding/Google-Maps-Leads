@@ -357,48 +357,15 @@ body {
   color: var(--accent-start);
 }
 
-/* --- Segment control --- */
-.segment-control {
-  display: flex;
-  background: var(--bg-primary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 4px;
-  position: relative;
+/* --- Number input: hide native spinners --- */
+.search-input[type="number"]::-webkit-outer-spin-button,
+.search-input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
-.segment-highlight {
-  position: absolute;
-  top: 4px;
-  height: calc(100% - 8px);
-  background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
-  border-radius: var(--radius-sm);
-  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 1;
-}
-
-.segment-btn {
-  flex: 1;
-  position: relative;
-  z-index: 2;
-  height: 40px;
-  background: none;
-  border: none;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-muted);
-  cursor: pointer;
-  border-radius: var(--radius-sm);
-  transition: color 0.2s ease;
-}
-
-.segment-btn:hover {
-  color: var(--text-secondary);
-}
-
-.segment-btn.active {
-  color: white;
+.search-input[type="number"] {
+  -moz-appearance: textfield;
 }
 
 /* --- Submit button --- */
@@ -788,21 +755,6 @@ body {
 
   .hero-subtitle {
     font-size: 15px;
-  }
-
-  .segment-control {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4px;
-  }
-
-  .segment-highlight {
-    display: none;
-  }
-
-  .segment-btn.active {
-    background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
-    border-radius: var(--radius-sm);
   }
 
   .trust-section {

@@ -21,8 +21,7 @@ const feedbackSuccess  = document.getElementById('feedback-success');
 const feedbackError    = document.getElementById('feedback-error');
 const errorMessage     = document.getElementById('error-message');
 const retryBtn         = document.getElementById('retry-btn');
-const segmentBtns      = document.querySelectorAll('.segment-btn');
-const segmentHighlight = document.getElementById('segment-highlight');
+const maxRowsInput     = document.getElementById('maxrows-input');
 const header           = document.getElementById('header');
 const progressSection  = document.getElementById('progress-section');
 const progressBar      = document.getElementById('progress-bar');
@@ -30,7 +29,6 @@ const progressPercent  = document.getElementById('progress-percent');
 const progressLabel    = document.getElementById('progress-label');
 const resultLink       = document.getElementById('result-link');
 
-let selectedLimit   = 25;
 let progressTimer   = null;
 
 
@@ -40,37 +38,6 @@ let progressTimer   = null;
 window.addEventListener('scroll', () => {
   header.classList.toggle('scrolled', window.scrollY > 10);
 }, { passive: true });
-
-
-// ─────────────────────────────────────────────────────────────
-// Segment Control — Sliding highlight
-// ─────────────────────────────────────────────────────────────
-function updateHighlight(btn) {
-  if (!btn || window.innerWidth <= 640) return;
-  segmentHighlight.style.left  = btn.offsetLeft + 'px';
-  segmentHighlight.style.width = btn.offsetWidth + 'px';
-}
-
-segmentBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
-    segmentBtns.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    selectedLimit = parseInt(btn.dataset.value);
-    updateHighlight(btn);
-  });
-});
-
-// Position highlight on initial load
-requestAnimationFrame(() => {
-  const activeBtn = document.querySelector('.segment-btn.active');
-  if (activeBtn) updateHighlight(activeBtn);
-});
-
-// Reposition on window resize
-window.addEventListener('resize', () => {
-  const activeBtn = document.querySelector('.segment-btn.active');
-  if (activeBtn) updateHighlight(activeBtn);
-});
 
 
 // ─────────────────────────────────────────────────────────────
@@ -176,10 +143,18 @@ async function submitForm(e) {
   e.preventDefault();
   hideAll();
 
-  const query = searchInput.value.trim();
+  const query   = searchInput.value.trim();
+  const maxRows = parseInt(maxRowsInput.value);
+
   if (!query) {
     showError("Veuillez entrer une recherche.");
     searchInput.focus();
+    return;
+  }
+
+  if (!maxRows || maxRows < 1) {
+    showError("Veuillez entrer un nombre de r\u00e9sultats valide.");
+    maxRowsInput.focus();
     return;
   }
 
@@ -192,7 +167,7 @@ async function submitForm(e) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         query:     query,
-        limit:     selectedLimit,
+        maxRows:   maxRows,
         timestamp: new Date().toISOString()
       })
     });
