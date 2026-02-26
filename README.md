@@ -1,127 +1,136 @@
-# MapScraper Pro — Extraction de leads Google Maps
+# MapScraper Pro — Google Maps Lead Extraction
 
-> Automatisation complète du scraping Google Maps vers Google Sheets via n8n et OutScraper.
-
----
-
-## Besoin client
-
-Mon client est une **agence web spécialisée dans la création de sites pour des commerces locaux**.
-
-Son problème : trouver des prospects qualifiés était entièrement manuel. Il passait des heures sur Google Maps à chercher des commerces sans site web, en notant à la main le nom, le type d'établissement et les coordonnées, un par un.
-
-**Ce processus était chronophage, répétitif et pas scalable.**
-
-Son besoin se résumait à ceci : taper une recherche du type _"Restaurants Lyon 3ème arrondissement"_ et obtenir automatiquement une liste d'établissements sans site web, prête à l'emploi pour la prospection commerciale.
+> Full automation pipeline: scrape Google Maps businesses → filter by website presence → export to Google Sheets. Built with n8n and OutScraper.
 
 ---
 
-## Solution proposée
+## Demo
 
-### Interface utilisateur
-
-Une interface web simple développée en **HTML / CSS / JavaScript** (3 fichiers, rien de superflu).
-
-L'utilisateur :
-1. Entre sa recherche Google Maps (ex : `Plombiers Bordeaux`, `Restaurants italien Paris 11`)
-2. Choisit le nombre de résultats souhaités (1 à 500)
-3. Clique sur **"Lancer l'extraction"**
-4. Reçoit en retour un lien direct vers un Google Sheet avec toutes les données
-
-Une barre de progression animée accompagne l'attente, et le lien s'affiche automatiquement dès que l'extraction est terminée.
+<!-- Replace the placeholder below with your GIF or video link -->
+> **Add a GIF or video here to showcase the workflow in action.**
+>
+> - **GIF:** `![Demo](assets/demo.gif)`
+> - **YouTube / Loom:** paste the URL or use an embed link
+> - **Screenshot:** `![Screenshot](assets/screenshot.png)`
 
 ---
 
-### Architecture du workflow n8n
+## Problem
 
-Le workflow se déclenche via un **webhook** appelé par l'interface. À partir de là, **deux branches parallèles** se lancent simultanément :
+Finding local businesses that don't have a website is entirely manual by default. You search on Google Maps, scroll through results, check each listing one by one, and note down the name, category, and contact info — business by business.
 
-- **Branche 1** : Création du Google Sheet de destination avec les bons headers, prêt à recevoir les données
-- **Branche 2** : Lancement du scraping via l'**API OutScraper**
+**That process is slow, repetitive, and doesn't scale.**
 
-Ce parallélisme optimise le temps d'exécution : pendant que le scraping tourne, le spreadsheet est déjà configuré.
-
----
-
-### Gestion de l'asynchronisme — Le point technique clé
-
-L'API OutScraper ne retourne pas les données immédiatement. Elle fonctionne avec un **ID de tâche** : il faut interroger l'API en boucle pour savoir quand le scraping est terminé. C'est du **polling classique**.
-
-La solution naïve (un simple `wait` de 30 secondes) posait deux problèmes :
-- Trop long → mauvaise expérience utilisateur
-- Trop court → le workflow échoue
-
-**La solution mise en place :** toute la logique de polling a été extraite dans un **sub-workflow dédié**. Le workflow principal appelle ce sub-workflow via un nœud `Execute Workflow` et reste bloqué jusqu'à ce qu'il reçoive une réponse.
-
-Le sub-workflow, lui, gère toute la complexité :
-- Interroge l'API **toutes les secondes**
-- Incrémente un compteur de tentatives
-- Vérifie deux conditions de sortie :
-  - ✅ Statut `success` → renvoie les données au workflow principal
-  - ⏱️ Dépassement des **60 tentatives** → renvoie un statut `timeout` propre plutôt qu'une erreur non gérée
-
-**Avantage clé de cette architecture :** ce sub-workflow de polling est **100% réutilisable** pour n'importe quel projet utilisant une API asynchrone (OutScraper, Apify, etc.).
+The goal: type a search like _"Italian restaurants Paris 11th"_ and instantly get a structured list of businesses with no real website, ready for outreach.
 
 ---
 
-### Filtrage et output
+## Solution
 
-Une fois les données récupérées, un filtre est appliqué sur le champ `site web` :
+### User Interface
 
-> Les établissements dont le site web est uniquement un lien **Facebook**, **Instagram** ou **Tripadvisor** sont conservés comme prospects prioritaires — ce sont des commerces sans vrai site web, donc des cibles directes pour l'agence.
+A lightweight web interface built in **HTML / CSS / JavaScript** — 3 files, nothing more.
 
-Les données filtrées sont ensuite :
-- Injectées dans le **Google Sheet** créé en amont
-- Le sheet est partagé en **lecture publique** automatiquement
-- L'URL est renvoyée à l'interface, et l'utilisateur peut y accéder directement
+The user:
+1. Types a Google Maps search query (e.g. `Plumbers Lyon`, `Italian restaurants Paris 11`)
+2. Sets the number of results to extract (1–500)
+3. Clicks **"Start extraction"**
+4. Gets a direct link to a Google Sheet with all the data
 
----
-
-## Résultat concret
-
-| Avant | Après |
-|-------|-------|
-| ~10h/semaine de recherche manuelle | Quelques secondes par extraction |
-| 1 ville prospectée à la fois | Plusieurs villes en parallèle |
-| Données notées à la main | Google Sheet structuré, prêt à l'emploi |
-| Processus non reproductible | Workflow automatisé, réutilisable à l'infini |
-
-> Ce workflow a fait **gagner environ 10 heures par semaine** au client. Ce qui prenait une demi-journée se fait désormais en quelques secondes.
+An animated progress bar runs during extraction, and the link appears automatically once the job is done.
 
 ---
 
-## Stack technique
+### n8n Workflow Architecture
 
-| Composant | Technologie |
-|-----------|-------------|
-| Interface | HTML, CSS, JavaScript (vanilla) |
+The workflow is triggered by a **webhook** called by the interface. Two **parallel branches** then run simultaneously:
+
+- **Branch 1** — Creates the destination Google Sheet with the correct headers, ready to receive data
+- **Branch 2** — Starts the scraping job via the **OutScraper API**
+
+Running both in parallel saves time: the spreadsheet is already set up while the scraping is still running.
+
+---
+
+### Async Polling — The Core Technical Challenge
+
+The OutScraper API doesn't return data immediately. It works with a **task ID**: you have to poll the API in a loop until the job is complete.
+
+A naive fixed `wait` of 30 seconds creates two problems:
+- Too long → bad user experience
+- Too short → the workflow fails
+
+**The solution:** the entire polling logic is extracted into a **dedicated sub-workflow**. The main workflow calls it via an `Execute Workflow` node and stays blocked until a result comes back.
+
+The sub-workflow handles all the complexity:
+- Polls the API **every second**
+- Increments an attempt counter
+- Checks two exit conditions:
+  - ✅ Status is `success` → returns data to the main workflow
+  - ⏱️ Exceeds **60 attempts** → returns a clean `timeout` status instead of an unhandled error
+
+**Key benefit:** this polling sub-workflow is **fully reusable** across any project that uses an async API — OutScraper, Apify, or others.
+
+---
+
+### Filtering & Output
+
+Once the data is retrieved, a filter is applied on the `website` field:
+
+> Businesses whose only web presence is a **Facebook**, **Instagram**, or **Tripadvisor** link are flagged as priority leads — they have no real website.
+
+The filtered data is then:
+- Injected into the Google Sheet created earlier
+- The sheet is automatically shared with **public read access**
+- The URL is sent back to the interface so the user can access the list immediately
+
+---
+
+## Outcome
+
+| Before | After |
+|--------|-------|
+| ~10h/week of manual research | A few seconds per extraction |
+| One city at a time | Multiple cities in parallel |
+| Data written down by hand | Structured Google Sheet, ready to use |
+| Non-reproducible process | Automated, reusable workflow |
+
+> What used to take half a day now runs **in seconds**.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | HTML, CSS, JavaScript (vanilla) |
 | Orchestration | n8n (self-hosted) |
-| Scraping | API OutScraper |
-| Stockage | Google Sheets (API) |
-| Déclencheur | Webhook HTTP |
+| Scraping | OutScraper API |
+| Storage | Google Sheets API |
+| Trigger | HTTP Webhook |
 
 ---
 
-## Structure du projet
+## Project Structure
 
 ```
 .
-├── index.html     # Interface utilisateur
+├── index.html     # User interface
 ├── style.css      # Design system (dark theme, glassmorphism)
-└── script.js      # Logique front (appel webhook, progress bar, gestion états)
+└── script.js      # Frontend logic (webhook call, progress bar, UI states)
 ```
 
 ---
 
 ## Configuration
 
-Dans `script.js`, renseignez votre URL de webhook n8n :
+In `script.js`, set your n8n webhook URL:
 
 ```js
-const WEBHOOK_URL = "https://votre-instance-n8n.com/webhook/search";
+const WEBHOOK_URL = "https://your-n8n-instance.com/webhook/search";
 ```
 
-Le workflow n8n doit retourner une réponse JSON au format suivant :
+The n8n workflow must return a JSON response in this format:
 
 ```json
 { "sheetUrl": "https://docs.google.com/spreadsheets/d/..." }
@@ -129,12 +138,4 @@ Le workflow n8n doit retourner une réponse JSON au format suivant :
 
 ---
 
-## Gestion de projet
-
-Avant de construire quoi que ce soit, une **carte mentale Miro** a été créée pour cadrer les besoins du client et valider la direction technique avant de coder.
-
-Durant le projet, des **Looms de 2 à 5 minutes** étaient envoyés au client à chaque avancée majeure pour maintenir la transparence — essentiel sur des projets techniques où le client ne voit pas ce qui se passe en coulisse.
-
----
-
-*Réalisé par [Simon](https://github.com/SimonIsCoding) — Freelance tech, spécialisé en code et automatisation N8N.*
+*Built by [Simon](https://github.com/SimonIsCoding) — Freelance developer, specialized in code and n8n automation.*
