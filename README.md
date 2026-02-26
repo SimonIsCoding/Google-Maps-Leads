@@ -138,4 +138,4 @@ The n8n workflow must return a JSON response in this format:
 
 ---
 
-*Built by [Simon](https://github.com/SimonIsCoding) — Freelance developer, specialized in code and n8n automation.*
+*Built by [Simon](https://github.com/SimonIsCoding) — Developer, specialized in code and n8n automation.*
