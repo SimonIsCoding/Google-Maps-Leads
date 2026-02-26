@@ -6,12 +6,15 @@
 
 ## Demo
 
-<!-- Replace the placeholder below with your GIF or video link -->
+<!-- Replace the placeholder below with your GIF or video link 
 > **Add a GIF or video here to showcase the workflow in action.**
 >
-> - **GIF:** `![Demo](assets/demo.gif)`
-> - **YouTube / Loom:** paste the URL or use an embed link
-> - **Screenshot:** `![Screenshot](assets/screenshot.png)`
+> - **GIF:** `![Demo](assets/demo.gif)` -->
+<p align="center">
+  <img src="DemoGoogleMapsLead.gif" width="1000">
+</p>
+<!-- > - **YouTube / Loom:** paste the URL or use an embed link
+> - **Screenshot:** `![Screenshot](assets/screenshot.png)` -->
 
 ---
 
